@@ -1,0 +1,6 @@
+[
+  {
+    "sql_id": "sql_1",
+    "sql": "WITH base_user AS (\n  SELECT DISTINCT\n         suserid,\n         suserid_type\n  FROM dim_vplayerid_vies_df\n  WHERE dtstatdate = '20250724'\n    AND itag = '其他'\n    AND suserid IS NOT NULL\n    AND suserid_type IN ('qq', 'wxid')\n)\nSELECT\n    a.suserid,\n    a.sgamecode,\n    SUM(a.ionlinetime) AS ionlinetime\nFROM dws_mgamejp_login_user_activity_di a\nJOIN base_user b\n  ON a.suserid = b.suserid\n AND a.suseridtype = b.suserid_type\nWHERE a.dtstatdate BETWEEN 20250530 AND 20250724\n  AND a.sgamecode IN ('initiatived', 'jordass', 'esports', 'allianceforce', 'strategy', 'playzone', 'su')\n  AND a.saccounttype = '-100'\n  AND a.suseridtype IN ('qq', 'wxid')\n  AND a.splattype = '-100'\n  AND a.splat = '-100'\nGROUP BY a.suserid, a.sgamecode"
+  }
+]

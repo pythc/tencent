@@ -1,0 +1,8 @@
+[
+    {
+        "sql_id": "sql_1",
+        "sql": "SELECT\n  suserid,\n  sgamecode,\n  ionlinetime\nFROM\n  dws_mgamejp_login_user_activity_di\nWHERE\n  dtstatdate = '20250724'\n  AND sgamecode IN ('initiatived', 'jordass', 'esports', 'allianceforce','strategy', 'playzone','su')\n  AND saccounttype = '-100'\n  AND suseridtype IN ('qq', 'wxid')\n  AND splatt;",
+        "status": "error",
+        "error_message": "(1064, \"Column 'splatt' cannot be resolved\")"
+    }
+]

@@ -1,0 +1,7 @@
+[
+  {
+    "sql_id": "sql_1",
+    "question": "统计2025.07.24的手游全量用户且标签为其他，在竞品业务下2025.05.30-2025.07.24的在线时长。\n输出：suserid、sgamecode、ionlinetime\n\n",
+    "sql": "SELECT\n  suserid,\n  sgamecode,\n  ionlinetime\nFROM\n  dws_mgamejp_login_user_activity_di\nWHERE\n  dtstatdate = '20250724'\n  AND sgamecode IN ('initiatived', 'jordass', 'esports', 'allianceforce','strategy', 'playzone','su')\n  AND saccounttype = '-100'\n  AND suseridtype IN ('qq', 'wxid')\n  AND splatt;"
+  }
+]
