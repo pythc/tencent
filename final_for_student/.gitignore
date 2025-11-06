@@ -1,0 +1,92 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+__MACOSX/
+
+# 训练输出和模型文件
+saves/
+checkpoints/
+*.pt
+*.pth
+*.safetensors
+*.bin
+*.ckpt
+
+# 结果和输出文件
+result/
+*.log
+submission.json
+evaluation_result.json
+predictions.json
+
+# 临时文件
+tmp/
+*.tmp
+*.temp
+
+# 数据文件（根据需要选择是否忽略）
+# 如果数据文件很大，建议使用 Git LFS 或忽略
+# data/cspider_train.json  # 6.2M - 如果不想提交，取消注释
+# data/insert_sql.json     # 6.3M - 如果不想提交，取消注释
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.rar
+
+# 文档和图片（比赛相关文档，根据需要决定是否提交）
+数智决策科学赛道比赛指南.pdf
+数智决策科学赛道比赛指南_*.png
+
+# 其他
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# 环境变量
+.env
+.env.local
+
+# 大型文件（使用 Git LFS 或忽略）
+*.model
+*.h5
+*.hdf5
+

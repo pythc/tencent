@@ -267,10 +267,10 @@ if __name__ == '__main__':
         'port': 9030 # starrocks访问端口
     }
 
-    # 执行插入操作
-    # insert_file_path = "/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/data/insert_sql.json"
-    # insert_result_file_path = "/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/upload_example/insert_exe_result.json"
-    # sql_executor.insert_data_with_pymysql(insert_file_path, insert_result_file_path, db_configuration)
+    #执行插入操作
+    insert_file_path = "/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/data/insert_sql.json"
+    insert_result_file_path = "/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/upload_example/insert_exe_result.json"
+    sql_executor.insert_data_with_pymysql(insert_file_path, insert_result_file_path, db_configuration)
     
     # 执行查询操作
     dataset_file_path = "/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/data/final_dataset.json"

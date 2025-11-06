@@ -1,0 +1,54 @@
+model_name_or_path: /home/ubuntu/workspace/tencent/models/Qwen_Qwen2.5-14B-Instruct  # 基础模型路径
+adapter_name_or_path: saves/stage_b_sft  # 从阶段 B SFT 的 adapter 继续训练
+quantization_bit: 4  # QLoRA 4-bit
+quantization_method: bnb  # bitsandbytes
+trust_remote_code: true
+
+### method
+stage: dpo  # ORPO 训练（使用 dpo stage，pref_loss 设为 orpo）
+do_train: true
+finetuning_type: lora
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target: all
+pref_beta: 0.1  # ORPO beta 参数（pref_beta 而非 orpo_beta）
+pref_loss: orpo  # 使用 ORPO loss
+
+### dataset
+dataset: domain_stage_b_orpo  # 将在 dataset_info.json 中注册（包含 rejected 字段）
+template: qwen
+cutoff_len: 3072  # 保持3072以确保完整性
+packing: false  # ORPO通常不启用packing（pairwise数据格式）
+overwrite_cache: false  # 使用缓存加速
+preprocessing_num_workers: 8  # 适中的并行度
+dataloader_num_workers: 4
+
+### output
+output_dir: saves/stage_b_orpo  # 使用已存在的目录，每次执行都会自动续训
+logging_steps: 100  # 减少日志频率
+save_steps: 500  # ORPO训练较短（0.5 epoch），保持500
+plot_loss: true
+overwrite_output_dir: false  # false=不覆盖，会自动从最新checkpoint续训（续训模式）
+save_only_model: false
+report_to: none  # choices: [none, wandb, tensorboard, swanlab, mlflow]
+
+### train
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 24  # ORPO保持24
+learning_rate: 1e-5  # ORPO 学习率（已调整为1e-5）
+num_train_epochs: 1.5  # 当前已训练到1.0 epoch，再训练0.5 epoch到1.5（续训模式）
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+fp16: true
+flash_attn: disabled
+gradient_checkpointing: true
+ddp_timeout: 180000000
+resume_from_checkpoint: null  # null=自动从output_dir中最新checkpoint续训（续训模式）
+
+### eval
+val_size: 0.2  # 10% 用于验证
+per_device_eval_batch_size: 1
+eval_strategy: steps
+eval_steps: 500  # ORPO训练较短，保持500
+

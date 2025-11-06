@@ -1,0 +1,48 @@
+{
+  "cspider_stage_a": {
+    "file_name": "/home/ubuntu/workspace/tencent/final_for_student/data/cspider_train.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant",
+      "system_tag": "system"
+    }
+  },
+  "domain_stage_b": {
+    "file_name": "/home/ubuntu/workspace/tencent/final_for_student/data/domain_train.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant",
+      "system_tag": "system"
+    }
+  },
+  "domain_stage_b_orpo": {
+    "file_name": "/home/ubuntu/workspace/tencent/final_for_student/data/domain_orpo.json",
+    "formatting": "sharegpt",
+    "ranking": true,
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant",
+      "system_tag": "system"
+    }
+  }
+}
+

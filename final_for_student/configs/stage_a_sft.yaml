@@ -1,0 +1,53 @@
+### model
+model_name_or_path: /home/ubuntu/workspace/tencent/models/Qwen_Qwen2.5-14B-Instruct
+quantization_bit: 4  # QLoRA 4-bit
+quantization_method: bnb  # bitsandbytes
+trust_remote_code: true
+
+### method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target: all
+
+### dataset
+dataset: cspider_stage_a  # 将在 dataset_info.json 中注册
+template: qwen
+cutoff_len: 2048  # 数据最大长度617，2048足够，训练时间∝序列长度²
+packing: true  # 开启样本打包，多条短样本拼进同一序列，减少padding浪费
+overwrite_cache: false  # 使用缓存加速后续训练
+preprocessing_num_workers: 8  # 适中的并行度
+dataloader_num_workers: 4
+
+### output
+output_dir: saves/stage_a_sft
+logging_steps: 100  # 减少日志频率
+save_steps: 1000  # 减少保存频率，500->1000步
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+report_to: none  # choices: [none, wandb, tensorboard, swanlab, mlflow]
+
+### train
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 32  # cutoff_len降低后显存更富余，可提到32
+learning_rate: 1.0e-4  # 阶段 A 学习率
+num_train_epochs: 1.0  # 阶段 A 只训练 1 epoch
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+fp16: true
+flash_attn: disabled
+gradient_checkpointing: true
+ddp_timeout: 180000000
+resume_from_checkpoint: null
+group_by_length: true  # 按长度分桶，配合packing使用，提升效率
+
+### eval
+val_size: 0.1  # 10% 用于验证
+per_device_eval_batch_size: 1
+eval_strategy: steps
+eval_steps: 1000  # 减少评测频率，500->1000步
+

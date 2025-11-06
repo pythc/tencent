@@ -115,24 +115,29 @@ def validate_sql_output(sql_text: Optional[str]) -> Optional[str]:
 
 
 def main() -> None:
+    # 获取脚本所在目录的父目录（项目根目录）
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent
+    
     parser = argparse.ArgumentParser(description="Batch generate SQL via RAG and execute")
     parser.add_argument("--input", type=Path,
-                        default=Path("/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/data/success_samples.jsonl"),
+                        default=project_root / "data" / "success_samples.jsonl",
                         help="输入问题文件，支持 jsonl 或 json list，需包含 sql_id/question")
     parser.add_argument("--pred-out", type=Path,
-                        default=Path("/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/result/rag_predictions.json"),
+                        default=project_root / "result" / "rag_predictions.json",
                         help="生成 SQL 的输出路径")
     parser.add_argument("--exec-out", type=Path,
-                        default=Path("/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/result/rag_execution_result.json"),
+                        default=project_root / "result" / "rag_execution_result.json",
                         help="执行结果输出路径")
     parser.add_argument("--llm", choices=["fake", "hf"], default="hf")
     parser.add_argument("--model-path", type=Path,
-                        default=Path("/home/zcy28/workspace/tencent_cpt/tencent/models/codellama-7b-instruct"))
+                        default=None,
+                        help="模型路径（当 --llm=hf 时使用）")
     parser.add_argument("--top-k", type=int, default=6)
     parser.add_argument("--max-new-tokens", type=int, default=256)
     parser.add_argument("--limit", type=int, default=0, help="限制待生成的题目数量，0 表示全部")
     parser.add_argument("--few-shot-file", type=Path,
-                        default=Path("/home/zcy28/workspace/track_3_data_intelligence3/final_for_student/data/success_samples.jsonl"),
+                        default=project_root / "data" / "success_samples.jsonl",
                         help="few-shot 示例文件（jsonl），包含 question/sql 字段")
     parser.add_argument("--few-shot-k", type=int, default=2, help="每个问题使用的示例数量")
     args = parser.parse_args()

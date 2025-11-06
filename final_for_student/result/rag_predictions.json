@@ -2,6 +2,6 @@
   {
     "sql_id": "sql_1",
     "question": "统计2025.07.24的手游全量用户且标签为其他，在竞品业务下2025.05.30-2025.07.24的在线时长。\n输出：suserid、sgamecode、ionlinetime\n\n",
-    "sql": "SELECT\n  suserid,\n  sgamecode,\n  ionlinetime\nFROM\n  dws_mgamejp_login_user_activity_di\nWHERE\n  dtstatdate = '20250724'\n  AND sgamecode IN ('initiatived', 'jordass', 'esports', 'allianceforce','strategy', 'playzone','su')\n  AND saccounttype = '-100'\n  AND suseridtype IN ('qq', 'wxid')\n  AND splatt;"
+    "sql": "SELECT DISTINCT\n         suserid,\n         suserid_type\n  FROM dim_vplayerid_vies_df\n  WHERE dtstatdate = '20250724'\n    AND itag = '其他'\n    AND suserid IS NOT NULL\n    AND suserid_type IN ('qq', 'wxid')\n)\nSELECT\n    a.suserid,\n    a.sgamecode,\n    SUM(a.ionlinetime) AS ionlinetime\nFROM dws_mgamejp_login_user_activity_di a\nJOIN base_user b\n  ON a.suserid = b.suserid\n AND a.suseridtype = b.suserid_type\nWHERE a.dtstatdate BETWEEN 20250530 AND 20250724\n  AND a.sgamecode IN ('initiatived', 'jordass', 'esports', 'allianceforce','strategy', 'playzone','su')\n  AND a.saccounttype = '-100'\n  AND a.suseridtype IN ('qq', 'wxid')\n  AND a.splattype = '-100'\n  AND a.splat = '-100'\nGROUP BY a.suserid, a.sgamecode;"
   }
 ]

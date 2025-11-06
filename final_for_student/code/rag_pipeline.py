@@ -17,26 +17,30 @@ from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.outputs import ChatGeneration
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.language_models.llms import BaseLLM
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.retrievers import BM25Retriever
 from langchain_community.chat_models.fake import FakeListChatModel
-from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
 
 try:  # Optional HuggingFace support
+    from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
     from transformers import (
         AutoModelForCausalLM,
         AutoTokenizer,
-        BitsAndBytesConfig,
         pipeline as hf_pipeline,
     )
     import torch
+    BitsAndBytesConfig = None  # 延迟导入，避免bitsandbytes依赖问题
 except Exception:  # pragma: no cover - optional dependency guard
     ChatHuggingFace = None  # type: ignore
+    HuggingFacePipeline = None  # type: ignore
     AutoModelForCausalLM = None  # type: ignore
     AutoTokenizer = None  # type: ignore
     hf_pipeline = None  # type: ignore
     torch = None  # type: ignore
+    BitsAndBytesConfig = None  # type: ignore
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SCHEMA = REPO_ROOT / "data" / "schema.json"
@@ -101,7 +105,7 @@ class SQLRAGPipeline:
     def __init__(
         self,
         retriever: BM25Retriever,
-        llm: BaseChatModel,
+        llm: BaseChatModel,  # 可以是BaseChatModel或BaseLLM
         top_k: int = 4,
     ) -> None:
         self.retriever = retriever
@@ -165,7 +169,16 @@ class SQLRAGPipeline:
 
     def generate_sql(self, question: str, *, few_shots: Optional[str] = None) -> str:
         generation = self.invoke(question, few_shots=few_shots)
-        if hasattr(generation, "content"):
+        # 处理ChatResult格式
+        if hasattr(generation, "generations") and generation.generations:
+            gen = generation.generations[0]
+            if hasattr(gen, "message"):
+                content = gen.message.content
+            elif hasattr(gen, "text"):
+                content = gen.text
+            else:
+                content = str(gen)
+        elif hasattr(generation, "content"):
             content = generation.content
         elif hasattr(generation, "message"):
             content = generation.message.content
@@ -249,9 +262,17 @@ def build_llm(llm_choice: str, model_path: Optional[str], max_new_tokens: int = 
         device_map = {"": "cuda:0"} if torch.cuda.is_available() else {"": "cpu"}
         quant_config = None
         dtype = torch.float32
+        # 仅在CUDA可用且bitsandbytes可用时使用量化
         if torch.cuda.is_available():
-            dtype = torch.float16
-            quant_config = BitsAndBytesConfig(load_in_8bit=True)
+            try:
+                import bitsandbytes as bnb
+                from transformers import BitsAndBytesConfig
+                dtype = torch.float16
+                quant_config = BitsAndBytesConfig(load_in_8bit=True)
+            except (ImportError, ModuleNotFoundError):
+                # 如果没有bitsandbytes，使用float16但不量化
+                dtype = torch.float16
+                quant_config = None
 
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
@@ -270,8 +291,43 @@ def build_llm(llm_choice: str, model_path: Optional[str], max_new_tokens: int = 
             pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id,
         )
+        # 直接使用HuggingFacePipeline，完全本地运行，不需要连接HuggingFace Hub
+        # HuggingFacePipeline实现了BaseLLM接口，我们需要创建一个简单的包装器使其兼容BaseChatModel
         llm_pipeline = HuggingFacePipeline(pipeline=generation_pipeline)
-        return ChatHuggingFace(llm=llm_pipeline)
+        
+        # 创建一个包装器，使HuggingFacePipeline可以像BaseChatModel一样使用
+        # 完全本地运行，不需要连接HuggingFace Hub
+        from pydantic import Field
+        
+        class LocalLLMWrapper(BaseChatModel):
+            """将BaseLLM包装为BaseChatModel，完全本地运行"""
+            llm: BaseLLM = Field(description="底层的HuggingFace Pipeline")
+            
+            class Config:
+                arbitrary_types_allowed = True
+            
+            def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+                # 将消息列表转换为文本
+                if isinstance(messages, list):
+                    prompt_text = "\n".join([msg.content if hasattr(msg, 'content') else str(msg) for msg in messages])
+                else:
+                    prompt_text = str(messages)
+                
+                # 调用底层的LLM
+                response = self.llm.invoke(prompt_text, stop=stop)
+                text = response if isinstance(response, str) else str(response)
+                
+                # 返回ChatResult格式（包含generations列表）
+                from langchain_core.outputs import ChatGeneration, ChatResult
+                message = AIMessage(content=text)
+                generation = ChatGeneration(message=message)
+                return ChatResult(generations=[generation])
+            
+            @property
+            def _llm_type(self):
+                return "local_huggingface"
+        
+        return LocalLLMWrapper(llm=llm_pipeline)
 
     raise ValueError(f"不支持的 llm 选项: {llm_choice}")
 
